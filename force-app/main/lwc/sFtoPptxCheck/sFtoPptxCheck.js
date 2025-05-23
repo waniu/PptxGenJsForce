@@ -2,28 +2,22 @@ import { LightningElement } from 'lwc';
 import { loadScript } from 'lightning/platformResourceLoader';
 import PPTXGEN from '@salesforce/resourceUrl/pptxGen';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-
-const showTemplate = false;
-const dataTable = [
-    ['Field Label', 'Field Value'],
-    ['First Name', 'Jakub'],
-    ['Last Name', 'Wanowski']
-];
+import getUserData from '@salesforce/apex/CTRL_TestPptxGen.getUserData';
 
 export default class SFtoPptxCheck extends LightningElement {
-    showTemplate = showTemplate;
     isLibraryLoaded = false;
-    dataTable = dataTable;
+    dataTable;
     slides = [];
     pptx;
+    queredData;
 
     connectedCallback() {
         if(!this.isLibraryLoaded) {
             Promise.all([
-                loadScript(this, PPTXGEN)
+                loadScript(this, PPTXGEN),
+                this.getData()
             ]).then(() => {
                 this.isLibraryLoaded = true;
-                console.log('connectedCallback() | this.isLibraryLoaded', this.isLibraryLoaded);
             }).catch((err) => {
                 console.error('Error loading pptxGen static resource');
                 console.error(JSON.stringify(err, null, 2));
@@ -40,9 +34,14 @@ export default class SFtoPptxCheck extends LightningElement {
 
     creteFile() {
         this.pptx = new window.PptxGenJS();
+        this.prepareTableData();
         this.setTitleSlide();
         this.addSlideWithTabel();
         this.downloadFile();
+    }
+
+    getData() {
+        getUserData().then(result => this.queredData = result);
     }
 
     setTitleSlide() {
@@ -69,7 +68,7 @@ export default class SFtoPptxCheck extends LightningElement {
 
     addSlideWithTabel() {
         let tableSlide = this.pptx.addSlide();
-        tableSlide.addTable(dataTable, 
+        tableSlide.addTable(this.dataTable, 
             { 
                 align: "left",
                 border: { 
@@ -78,6 +77,11 @@ export default class SFtoPptxCheck extends LightningElement {
                 } 
             }
         );
+    }
+
+    prepareTableData() {
+        let dataTable = Object.entries(this.queredData);
+        this.dataTable = dataTable;
     }
 
     downloadFile() {
