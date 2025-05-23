@@ -4,10 +4,16 @@ import PPTXGEN from '@salesforce/resourceUrl/pptxGen';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
 const showTemplate = false;
+const dataTable = [
+    ['Field Label', 'Field Value'],
+    ['First Name', 'Jakub'],
+    ['Last Name', 'Wanowski']
+];
 
 export default class SFtoPptxCheck extends LightningElement {
     showTemplate = showTemplate;
     isLibraryLoaded = false;
+    dataTable = dataTable;
     slides = [];
     pptx;
 
@@ -33,16 +39,10 @@ export default class SFtoPptxCheck extends LightningElement {
     }
 
     creteFile() {
-        console.log('createFile() | START');
-
-        if (window.PptxGenJS) {
-            this.pptx = new window.PptxGenJS();
-            this.setTitleSlide();
-            this.addSlideWithTabel();
-            this.downloadFile();
-        } else {
-            console.log('createFile() | window.PptxGenJS have issues');
-        }
+        this.pptx = new window.PptxGenJS();
+        this.setTitleSlide();
+        this.addSlideWithTabel();
+        this.downloadFile();
     }
 
     setTitleSlide() {
@@ -69,7 +69,15 @@ export default class SFtoPptxCheck extends LightningElement {
 
     addSlideWithTabel() {
         let tableSlide = this.pptx.addSlide();
-        //tableSlide.tableToSlides("testTable");
+        tableSlide.addTable(dataTable, 
+            { 
+                align: "left",
+                border: { 
+                    pt: "1", 
+                    color: "BBCCDD" 
+                } 
+            }
+        );
     }
 
     downloadFile() {
